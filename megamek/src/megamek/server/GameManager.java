@@ -45,7 +45,7 @@ import megamek.common.verifier.*;
 import megamek.common.weapons.*;
 import megamek.common.weapons.infantry.InfantryWeapon;
 import megamek.server.commands.*;
-import megamek.server.victory.VictoryResult;
+import megamek.server.managers.VictoryManager;
 import org.apache.logging.log4j.LogManager;
 
 import java.awt.*;
@@ -93,6 +93,7 @@ public class GameManager implements IGameManager {
     private static final String DEFAULT_BOARD = MapSettings.BOARD_GENERATED;
 
     private Game game = new Game();
+    private VictoryManager victoryManager;
 
     private Vector<Report> vPhaseReport = new Vector<>();
 
@@ -145,6 +146,9 @@ public class GameManager implements IGameManager {
     private final ConcurrentLinkedQueue<Server.ReceivedPacket> cfrPacketQueue = new ConcurrentLinkedQueue<>();
 
     public GameManager() {
+        //setup for the managers
+        victoryManager = new VictoryManager(this);
+
         game.getOptions().initialize();
         game.getOptions().loadOptions();
 
@@ -253,6 +257,8 @@ public class GameManager implements IGameManager {
 
         game.getForces().setGame(game);
     }
+
+    public VictoryManager getVictoryManager(){ return this.victoryManager; }
 
     /**
      * Reset the game back to the lounge.
@@ -2535,7 +2541,7 @@ public class GameManager implements IGameManager {
                 // remove any entities that died in the heat/end phase before
                 // checking for victory
                 resetEntityPhase(GamePhase.END);
-                boolean victory = victory(); // note this may add reports
+                boolean victory = victoryManager.victory(game); // note this may add reports
                 // check phase report
                 // HACK: hardcoded message ID check
                 if ((vPhaseReport.size() > 3) || ((vPhaseReport.size() > 1)
@@ -2562,7 +2568,7 @@ public class GameManager implements IGameManager {
                 if (changePlayersTeam) {
                     processTeamChangeRequest();
                 }
-                if (victory()) {
+                if (victoryManager.victory(game)) {
                     changePhase(GamePhase.VICTORY);
                 } else {
                     changePhase(GamePhase.INITIATIVE);
@@ -2833,19 +2839,6 @@ public class GameManager implements IGameManager {
         Player player = game.getPlayer(turn.getPlayerNum());
         return (null == player) || player.isGhost() || (game.getFirstEntity() == null);
     }
-
-    /**
-     * Returns true if victory conditions have been met. Victory conditions are
-     * when there is only one player left with mechs or only one team. will also
-     * add some reports to reporting
-     */
-    public boolean victory() {
-        VictoryResult vr = game.getVictoryResult();
-        for (Report r : vr.processVictory(game)) {
-            addReport(r);
-        }
-        return vr.victory();
-    }// end victory
 
     private boolean isPlayerForcedVictory() {
         // check game options

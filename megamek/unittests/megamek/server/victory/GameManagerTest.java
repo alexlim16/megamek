@@ -48,12 +48,12 @@ public class GameManagerTest {
         // test whether the server.victory() returns false when mocking VictoryResult as false
         when(testGame.getVictoryResult()).thenReturn(testVictoryResultFalse);
         gameManager.setGame(testGame);
-        assertFalse(gameManager.victory());
+        assertFalse(gameManager.getVictoryManager().victory(gameManager.getGame()));
 
         // test whether the server.victory() returns true when mocking VictoryResult as true
         when(testGame.getVictoryResult()).thenReturn(testVictoryResultTrue);
         gameManager.setGame(testGame);
-        assertTrue(gameManager.victory());
+        assertTrue(gameManager.getVictoryManager().victory(gameManager.getGame()));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class GameManagerTest {
         when(testGame.getVictoryResult()).thenReturn(testVictoryResultTrue);
 
         gameManager.setGame(testGame);
-        gameManager.victory();
+        gameManager.getVictoryManager().victory(gameManager.getGame());
         verify(testGame, times(1)).setVictoryPlayerId(Player.PLAYER_NONE);
         verify(testGame, times(1)).setVictoryTeam(Player.TEAM_NONE);
     }
@@ -77,7 +77,7 @@ public class GameManagerTest {
         when(testGame.getVictoryResult()).thenReturn(testVictoryResultTrue);
 
         gameManager.setGame(testGame);
-        gameManager.victory();
+        gameManager.getVictoryManager().victory(gameManager.getGame());
         verify(testGame, times(1)).cancelVictory();
     }
 
@@ -90,7 +90,7 @@ public class GameManagerTest {
         when(testGame.isForceVictory()).thenReturn(true);
 
         gameManager.setGame(testGame);
-        gameManager.victory();
+        gameManager.getVictoryManager().victory(gameManager.getGame());
         verify(testGame, times(1)).cancelVictory();
     }
 
@@ -119,7 +119,7 @@ public class GameManagerTest {
         when(testGame.getPlayer(winner)).thenReturn(mockedPlayer);
 
         gameManager.setGame(testGame);
-        gameManager.victory();
+        gameManager.getVictoryManager().victory(gameManager.getGame());
 
         assertSame(1, gameManager.getvPhaseReport().size());
 
@@ -130,7 +130,7 @@ public class GameManagerTest {
         when(victoryResult.getWinningTeam()).thenReturn(10);
         when(victoryResult.getReports()).thenReturn(new ArrayList<>());
         gameManager2.setGame(testGame);
-        gameManager2.victory();
+        gameManager2.getVictoryManager().victory(gameManager.getGame());
 
         assertSame(2, gameManager2.getvPhaseReport().size());
     }
