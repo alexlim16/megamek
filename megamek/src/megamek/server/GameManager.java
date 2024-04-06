@@ -1346,26 +1346,6 @@ public class GameManager implements IGameManager {
     }
 
     /**
-     * Forces victory for the specified player, or his/her team at the end of the round.
-     */
-    public void forceVictory(Player victor) {
-        game.setForceVictory(true);
-        if (victor.getTeam() == Player.TEAM_NONE) {
-            game.setVictoryPlayerId(victor.getId());
-            game.setVictoryTeam(Player.TEAM_NONE);
-        } else {
-            game.setVictoryPlayerId(Player.PLAYER_NONE);
-            game.setVictoryTeam(victor.getTeam());
-        }
-
-        Vector<Player> playersVector = game.getPlayersVector();
-        for (int i = 0; i < playersVector.size(); i++) {
-            Player player = playersVector.elementAt(i);
-            player.setAdmitsDefeat(false);
-        }
-    }
-
-    /**
      * Called when a player declares that he is "done." Checks to see if all
      * players are done, and if so, moves on to the next phase.
      */
