@@ -3,6 +3,7 @@ package megamek.server.managers;
 import megamek.common.Game;
 import megamek.common.Player;
 import megamek.common.Report;
+import megamek.common.options.OptionsConstants;
 import megamek.server.GameManager;
 import megamek.server.victory.VictoryResult;
 
@@ -46,5 +47,29 @@ public class VictoryManager {
             Player player = playersVector.elementAt(i);
             player.setAdmitsDefeat(false);
         }
+    }
+
+    public boolean isPlayerForcedVictory(Game game) {
+        // check game options
+        if (!game.getOptions().booleanOption(OptionsConstants.VICTORY_SKIP_FORCED_VICTORY)) {
+            return false;
+        }
+
+        if (!game.isForceVictory()) {
+            return false;
+        }
+
+        for (Player player : game.getPlayersVector()) {
+            if ((player.getId() == game.getVictoryPlayerId()) || ((player.getTeam() == game.getVictoryTeam())
+                    && (game.getVictoryTeam() != Player.TEAM_NONE))) {
+                continue;
+            }
+
+            if (!player.admitsDefeat()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
