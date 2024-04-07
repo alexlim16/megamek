@@ -1186,111 +1186,6 @@ public class GameManager implements IGameManager {
     }
 
     /**
-     * Writes the victory report
-     */
-    private void prepareVictoryReport() {
-        // remove carcasses to the graveyard
-        Vector<Entity> toRemove = new Vector<>();
-        for (Entity e : game.getEntitiesVector()) {
-            if (e.isCarcass() && !e.isDestroyed()) {
-                toRemove.add(e);
-            }
-        }
-        for (Entity e : toRemove) {
-            destroyEntity(e, "crew death", false, true);
-            game.removeEntity(e.getId(), IEntityRemovalConditions.REMOVE_SALVAGEABLE);
-            e.setDestroyed(true);
-        }
-
-        addReport(new Report(7000, Report.PUBLIC));
-
-        // Declare the victor
-        Report r = new Report(1210);
-        r.type = Report.PUBLIC;
-        if (game.getVictoryTeam() == Player.TEAM_NONE) {
-            Player player = game.getPlayer(game.getVictoryPlayerId());
-            if (null == player) {
-                r.messageId = 7005;
-            } else {
-                r.messageId = 7010;
-                r.add(player.getColorForPlayer());
-            }
-        } else {
-            // Team victory
-            r.messageId = 7015;
-            r.add(game.getVictoryTeam());
-        }
-        addReport(r);
-
-        bvReports(false);
-
-        // List the survivors
-        Iterator<Entity> survivors = game.getEntities();
-        if (survivors.hasNext()) {
-            addReport(new Report(7023, Report.PUBLIC));
-            while (survivors.hasNext()) {
-                Entity entity = survivors.next();
-
-                if (!entity.isDeployed()) {
-                    continue;
-                }
-
-                addReport(entity.victoryReport());
-            }
-        }
-        // List units that never deployed
-        Iterator<Entity> undeployed = game.getEntities();
-        if (undeployed.hasNext()) {
-            boolean wroteHeader = false;
-
-            while (undeployed.hasNext()) {
-                Entity entity = undeployed.next();
-
-                if (entity.isDeployed()) {
-                    continue;
-                }
-
-                if (!wroteHeader) {
-                    addReport(new Report(7075, Report.PUBLIC));
-                    wroteHeader = true;
-                }
-
-                addReport(entity.victoryReport());
-            }
-        }
-        // List units that retreated
-        Enumeration<Entity> retreat = game.getRetreatedEntities();
-        if (retreat.hasMoreElements()) {
-            addReport(new Report(7080, Report.PUBLIC));
-            while (retreat.hasMoreElements()) {
-                Entity entity = retreat.nextElement();
-                addReport(entity.victoryReport());
-            }
-        }
-        // List destroyed units
-        Enumeration<Entity> graveyard = game.getGraveyardEntities();
-        if (graveyard.hasMoreElements()) {
-            addReport(new Report(7085, Report.PUBLIC));
-            while (graveyard.hasMoreElements()) {
-                Entity entity = graveyard.nextElement();
-                addReport(entity.victoryReport());
-            }
-        }
-        // List devastated units (not salvageable)
-        Enumeration<Entity> devastated = game.getDevastatedEntities();
-        if (devastated.hasMoreElements()) {
-            addReport(new Report(7090, Report.PUBLIC));
-
-            while (devastated.hasMoreElements()) {
-                Entity entity = devastated.nextElement();
-                addReport(entity.victoryReport());
-            }
-        }
-        // Let player know about entitystatus.txt file
-        addReport(new Report(7095, Report.PUBLIC));
-    }
-
-    /**
      * Generates a detailed report for campaign use
      */
     private String getDetailedVictoryReport() {
@@ -1639,7 +1534,7 @@ public class GameManager implements IGameManager {
         }
     }
 
-    private void bvReports(boolean checkBlind) {
+    public void bvReports(boolean checkBlind) {
         List<Report> playerReport = new ArrayList<>();
         List<Report> teamReport = new ArrayList<>();
         HashMap<Integer, BVCountHelper> teamsInfo = new HashMap<>();
@@ -2060,7 +1955,7 @@ public class GameManager implements IGameManager {
                 resetPlayersDone();
                 clearReports();
                 send(createAllReportsPacket());
-                prepareVictoryReport();
+                victoryManager.prepareVictoryReport(game);
                 game.addReports(vPhaseReport);
                 // Before we send the full entities packet we need to loop
                 // through the fighters in squadrons and damage them.
@@ -33945,7 +33840,7 @@ public class GameManager implements IGameManager {
      * Add a whole lotta Reports to the players report queues as well as the
      * Master report queue vPhaseReport.
      */
-    private void addReport(Vector<Report> reports) {
+    public void addReport(Vector<Report> reports) {
         vPhaseReport.addAll(reports);
     }
 
@@ -33954,7 +33849,7 @@ public class GameManager implements IGameManager {
      * Master report queue vPhaseReport, indenting each report by the passed
      * value.
      */
-    private void addReport(Vector<Report> reports, int indents) {
+    public void addReport(Vector<Report> reports, int indents) {
         for (Report r : reports) {
             r.indent(indents);
             vPhaseReport.add(r);

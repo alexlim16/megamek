@@ -9,11 +9,10 @@ import megamek.server.victory.VictoryResult;
 
 import java.util.Vector;
 
-public class VictoryManager {
+public class VictoryManager extends VictoryReportManager{
 
-    private GameManager gameManager;
     public VictoryManager(GameManager gameManager) {
-        this.gameManager = gameManager;
+        super(gameManager);
     }
 
     /**
