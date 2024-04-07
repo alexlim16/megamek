@@ -1186,61 +1186,6 @@ public class GameManager implements IGameManager {
     }
 
     /**
-     * Generates a detailed report for campaign use
-     */
-    private String getDetailedVictoryReport() {
-        StringBuilder sb = new StringBuilder();
-
-        Vector<Entity> vAllUnits = new Vector<>();
-        for (Iterator<Entity> i = game.getEntities(); i.hasNext(); ) {
-            vAllUnits.addElement(i.next());
-        }
-
-        for (Enumeration<Entity> i = game.getRetreatedEntities(); i.hasMoreElements(); ) {
-            vAllUnits.addElement(i.nextElement());
-        }
-
-        for (Enumeration<Entity> i = game.getGraveyardEntities(); i.hasMoreElements(); ) {
-            vAllUnits.addElement(i.nextElement());
-        }
-
-        for (Enumeration<Player> i = game.getPlayers(); i.hasMoreElements(); ) {
-            // Record the player.
-            Player p = i.nextElement();
-            sb.append("++++++++++ ").append(p.getName()).append(" ++++++++++\n");
-
-            // Record the player's alive, retreated, or salvageable units.
-            for (int x = 0; x < vAllUnits.size(); x++) {
-                Entity e = vAllUnits.elementAt(x);
-                if (e.getOwner() == p) {
-                    sb.append(UnitStatusFormatter.format(e));
-                }
-            }
-
-            // Record the player's devastated units.
-            Enumeration<Entity> devastated = game.getDevastatedEntities();
-            if (devastated.hasMoreElements()) {
-                sb.append("=============================================================\n");
-                sb.append("The following utterly destroyed units are not available for salvage:\n");
-                while (devastated.hasMoreElements()) {
-                    Entity e = devastated.nextElement();
-                    if (e.getOwner() == p) {
-                        sb.append(e.getShortName());
-                        for (int pos = 0; pos < e.getCrew().getSlotCount(); pos++) {
-                            sb.append(", ").append(e.getCrew().getNameAndRole(pos)).append(" (")
-                                    .append(e.getCrew().getGunnery()).append('/')
-                                    .append(e.getCrew().getPiloting()).append(")\n");
-                        }
-                    }
-                }
-                sb.append("=============================================================\n");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    /**
      * Called when a player declares that he is "done." Checks to see if all
      * players are done, and if so, moves on to the next phase.
      */
@@ -30437,7 +30382,7 @@ public class GameManager implements IGameManager {
      * Creates a packet indicating end of game, including detailed unit status
      */
     private Packet createEndOfGamePacket() {
-        return new Packet(PacketCommand.END_OF_GAME, getDetailedVictoryReport(),
+        return new Packet(PacketCommand.END_OF_GAME, victoryManager.getDetailedVictoryReport(game),
                 getGame().getVictoryPlayerId(), getGame().getVictoryTeam());
     }
 

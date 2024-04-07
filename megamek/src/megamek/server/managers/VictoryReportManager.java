@@ -6,6 +6,8 @@ import megamek.common.IEntityRemovalConditions;
 import megamek.common.Player;
 import megamek.common.Report;
 import megamek.server.GameManager;
+import megamek.server.UnitStatusFormatter;
+
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
@@ -121,5 +123,58 @@ public class VictoryReportManager {
         gameManager.addReport(new Report(7095, Report.PUBLIC));
     }
 
+    /**
+     * Generates a detailed report for campaign use
+     */
+    public String getDetailedVictoryReport(Game game) {
+        StringBuilder sb = new StringBuilder();
 
+        Vector<Entity> vAllUnits = new Vector<>();
+        for (Iterator<Entity> i = game.getEntities(); i.hasNext(); ) {
+            vAllUnits.addElement(i.next());
+        }
+
+        for (Enumeration<Entity> i = game.getRetreatedEntities(); i.hasMoreElements(); ) {
+            vAllUnits.addElement(i.nextElement());
+        }
+
+        for (Enumeration<Entity> i = game.getGraveyardEntities(); i.hasMoreElements(); ) {
+            vAllUnits.addElement(i.nextElement());
+        }
+
+        for (Enumeration<Player> i = game.getPlayers(); i.hasMoreElements(); ) {
+            // Record the player.
+            Player p = i.nextElement();
+            sb.append("++++++++++ ").append(p.getName()).append(" ++++++++++\n");
+
+            // Record the player's alive, retreated, or salvageable units.
+            for (int x = 0; x < vAllUnits.size(); x++) {
+                Entity e = vAllUnits.elementAt(x);
+                if (e.getOwner() == p) {
+                    sb.append(UnitStatusFormatter.format(e));
+                }
+            }
+
+            // Record the player's devastated units.
+            Enumeration<Entity> devastated = game.getDevastatedEntities();
+            if (devastated.hasMoreElements()) {
+                sb.append("=============================================================\n");
+                sb.append("The following utterly destroyed units are not available for salvage:\n");
+                while (devastated.hasMoreElements()) {
+                    Entity e = devastated.nextElement();
+                    if (e.getOwner() == p) {
+                        sb.append(e.getShortName());
+                        for (int pos = 0; pos < e.getCrew().getSlotCount(); pos++) {
+                            sb.append(", ").append(e.getCrew().getNameAndRole(pos)).append(" (")
+                                    .append(e.getCrew().getGunnery()).append('/')
+                                    .append(e.getCrew().getPiloting()).append(")\n");
+                        }
+                    }
+                }
+                sb.append("=============================================================\n");
+            }
+        }
+
+        return sb.toString();
+    }
 }
